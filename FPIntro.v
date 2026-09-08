@@ -62,12 +62,32 @@ Notation "x + y" := (plus x y).
 Compute (two + two).
 
 (* Exercise: напишите функцию умножения двух чисел *)
-Fixpoint mult (n : nat) (m : nat) : nat := O.
+Fixpoint mult (n : nat) (m : nat) : nat :=
+  match n with
+  | O => O
+  | S n' => plus m (mult n' m)
+  end.
 Notation "x * y" := (mult x y).
 
+Compute (mult two one).
+
 (* Exercise: напишите функцию факториала *)
+Fixpoint factorial (n : nat) : nat :=
+  match n with
+  | O => S O
+  | S n' => mult n (factorial n')
+  end.
+
+Compute (factorial (S (S (S O)))).
 
 (* Exercise: напишите функцию возведения в степень *)
+Fixpoint power (n : nat) (m : nat) : nat :=
+  match m with
+  | O => S O
+  | S m' => mult (power n m') n
+  end.
+
+Compute (power two (S (S (S O)))).
 
 (* Можно сопоставлять с образцом сразу несколько переменных *)
 Fixpoint eqb (n m : nat) : bool :=
@@ -90,7 +110,11 @@ Qed.
 
 (* Exercise: замените Admitted на доказательство *)
 Example mult_0_l : forall n:nat, O = O * n.
-Proof. Admitted.
+Proof.
+  intros n.
+  simpl.
+  reflexivity.
+Qed.
 
 Theorem plus_id_example : forall n m:nat,
   n = m ->
@@ -105,13 +129,19 @@ Qed.
 (* Exercise: замените Admitted на доказательство *)
 Theorem plus_id_exercise : forall n m o : nat,
   n = m -> m = o -> n + m = m + o.
-Proof. Admitted.
+Proof.
+  intros n m o.
+  intros H1 H2.
+  rewrite H1.
+  rewrite H2.
+  simpl.
+  reflexivity.
+Qed.
 
 Theorem plus_n_0_m_0 : forall p q : nat,
   (O + p) + (O + q) = p + q.
 Proof.
   intros p q. (* что-то похожее уже доказывали, как переиспользовать? *)
-  Check plus_O_n.
   rewrite <- plus_O_n. (* переписываем при помощи известной теоремы *)
   rewrite <- plus_O_n.
   reflexivity.
@@ -130,12 +160,27 @@ Qed.
 (* Exercise: замените Admitted на доказательство *)
 Theorem negb_involutive : forall b : bool,
   negb (negb b) = b.
-Proof. Admitted.
+Proof.
+  intros b.
+  simpl.
+  destruct b.
+      - reflexivity.
+      - reflexivity.
+Qed.
 
 (* Exercise: замените Admitted на доказательство *)
 Theorem andb_true_elim2 : forall b c : bool,
   andb b c = true -> c = true.
-Proof. Admitted.
+Proof.
+  intros b c.
+  destruct b.
+  - destruct c.
+    + simpl. intros. reflexivity.
+    + simpl. intros. rewrite H. reflexivity.
+  - destruct c.
+    + simpl. intros. reflexivity.
+    + simpl. intros. rewrite H. reflexivity.
+Qed.
 
 Theorem add_0_r : forall n:nat,
   n + O = n.
@@ -154,22 +199,44 @@ Qed.
 (* Exercise *)
 Theorem mul_0_r : forall n:nat,
   n * O = O.
-Proof. Admitted.
+Proof.
+  intros n.
+  induction n as [|n' IHn'].
+  - simpl. reflexivity.
+  - simpl. rewrite -> IHn'. reflexivity.
+Qed.
 
 (* Exercise *)
 Theorem plus_n_Sm : forall n m : nat,
   S (n + m) = n + (S m).
-Proof. Admitted.
+Proof.
+  intros n m.
+  induction n as [|n' IHn'].
+  - simpl. reflexivity.
+  - simpl. rewrite -> IHn'. reflexivity.
+Qed.
 
 (* Exercise *)
 Theorem add_comm : forall n m : nat,
   n + m = m + n.
-Proof. Admitted.
+Proof.
+  intros n m.
+  induction n as [|n' IHn'].
+  - simpl. induction m as [|m' IHm'].
+    + simpl. reflexivity.
+    + simpl. rewrite <- IHm'. reflexivity.
+  - simpl. rewrite -> IHn'. rewrite <- plus_n_Sm. reflexivity.
+Qed.
 
 (* Exercise *)
 Theorem add_assoc : forall n m p : nat,
   n + (m + p) = (n + m) + p.
-Proof. Admitted.
+Proof.
+  intros n m p.
+  induction n as [|n' IHn'].
+  - simpl. reflexivity.
+  - simpl. rewrite <- IHn'. reflexivity.
+Qed.
 
 Inductive natlist : Type :=
   | nil
